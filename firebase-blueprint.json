@@ -1,0 +1,224 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Public and role-scoped user profile for customers, business owners, and administrators.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "displayName": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "role": { "type": "string", "enum": ["customer", "business", "admin", "delivery_partner"] },
+        "neighborhood": { "type": "string", "maxLength": 80 },
+        "savedBusinessIds": { "type": "string", "maxLength": 1000 },
+        "lowBandwidthMode": { "type": "boolean" },
+        "notifyEmail": { "type": "boolean" },
+        "notifySms": { "type": "boolean" },
+        "notifySafetyAlerts": { "type": "boolean" },
+        "policyAcceptedAt": { "type": "string", "maxLength": 64 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "displayName", "role", "neighborhood", "lowBandwidthMode", "notifyEmail", "notifySms", "notifySafetyAlerts", "policyAcceptedAt", "createdAt", "updatedAt"]
+    },
+    "UserPrivateInfo": {
+      "title": "UserPrivateInfo",
+      "description": "Isolated PII document for user email, phone number, and PDPO Uganda consent records.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "email": { "type": "string", "maxLength": 160 },
+        "phone": { "type": "string", "maxLength": 32 },
+        "pdpoConsentVersion": { "type": "string", "maxLength": 32 },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "phone", "pdpoConsentVersion", "updatedAt"]
+    },
+    "BusinessProfile": {
+      "title": "BusinessProfile",
+      "description": "Food business profile, KCCA verification status, location, and operating details.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "ownerUid": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "name": { "type": "string", "minLength": 2, "maxLength": 120 },
+        "category": { "type": "string", "enum": ["Restaurants & Cafés", "Bakeries & Pastry", "Supermarkets & Grocery", "Hotels & Catering", "Fruit & Vegetable", "Approved Retailers"] },
+        "neighborhood": { "type": "string", "maxLength": 80 },
+        "address": { "type": "string", "maxLength": 200 },
+        "contactPhone": { "type": "string", "maxLength": 32 },
+        "openingHours": { "type": "string", "maxLength": 120 },
+        "kccaPermitNumber": { "type": "string", "maxLength": 64 },
+        "tinNumber": { "type": "string", "maxLength": 64 },
+        "verificationStatus": { "type": "string", "enum": ["pending", "approved", "rejected", "suspended"] },
+        "foodSafetyAccepted": { "type": "boolean" },
+        "foodSafetyAcceptedAt": { "type": "string", "maxLength": 64 },
+        "subscriptionTier": { "type": "string", "enum": ["standard", "growth", "enterprise"] },
+        "commissionBps": { "type": "integer" },
+        "distanceKm": { "type": "number" },
+        "isSeedData": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "ownerUid", "name", "category", "neighborhood", "address", "contactPhone", "openingHours", "kccaPermitNumber", "tinNumber", "verificationStatus", "foodSafetyAccepted", "foodSafetyAcceptedAt", "subscriptionTier", "commissionBps", "distanceKm", "isSeedData", "createdAt", "updatedAt"]
+    },
+    "FoodListing": {
+      "title": "FoodListing",
+      "description": "Surplus food listing with integer minor unit pricing (UGX), allergens, storage instructions, and strict sale/collection/safe-use deadlines.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "businessId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "businessName": { "type": "string", "maxLength": 120 },
+        "businessCategory": { "type": "string", "maxLength": 64 },
+        "neighborhood": { "type": "string", "maxLength": 80 },
+        "pickupAddress": { "type": "string", "maxLength": 200 },
+        "ownerUid": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "title": { "type": "string", "minLength": 3, "maxLength": 140 },
+        "description": { "type": "string", "minLength": 10, "maxLength": 800 },
+        "listingType": { "type": "string", "enum": ["packaged", "prepared", "surprise_bundle"] },
+        "currency": { "type": "string", "enum": ["UGX"] },
+        "originalPriceUgx": { "type": "integer" },
+        "discountedPriceUgx": { "type": "integer" },
+        "totalQuantity": { "type": "integer" },
+        "remainingQuantity": { "type": "integer" },
+        "ingredients": { "type": "string", "maxLength": 500 },
+        "allergens": { "type": "string", "maxLength": 300 },
+        "dietaryTags": { "type": "string", "maxLength": 200 },
+        "storageInstructions": { "type": "string", "maxLength": 400 },
+        "collectionWindowLabel": { "type": "string", "maxLength": 100 },
+        "saleDeadlineIso": { "type": "string", "maxLength": 64 },
+        "collectionDeadlineIso": { "type": "string", "maxLength": 64 },
+        "safeUseDeadlineIso": { "type": "string", "maxLength": 64 },
+        "status": { "type": "string", "enum": ["draft", "published", "paused", "withdrawn", "expired", "suspended_safety"] },
+        "isSponsored": { "type": "boolean" },
+        "distanceKm": { "type": "number" },
+        "imageKey": { "type": "string", "maxLength": 80 },
+        "customImageDataUrl": { "type": "string", "maxLength": 150000 },
+        "isSeedData": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "businessId", "businessName", "businessCategory", "neighborhood", "pickupAddress", "ownerUid", "title", "description", "listingType", "currency", "originalPriceUgx", "discountedPriceUgx", "totalQuantity", "remainingQuantity", "ingredients", "allergens", "dietaryTags", "storageInstructions", "collectionWindowLabel", "saleDeadlineIso", "collectionDeadlineIso", "safeUseDeadlineIso", "status", "isSponsored", "distanceKm", "imageKey", "customImageDataUrl", "isSeedData", "createdAt", "updatedAt"]
+    },
+    "OrderRecord": {
+      "title": "OrderRecord",
+      "description": "Atomic customer reservation and order record with server-verified pricing, commission calculation, and 6-char collection verification code.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "customerUid": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "customerName": { "type": "string", "maxLength": 100 },
+        "businessId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "businessOwnerUid": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "businessName": { "type": "string", "maxLength": 120 },
+        "pickupAddress": { "type": "string", "maxLength": 200 },
+        "listingId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "listingTitle": { "type": "string", "maxLength": 140 },
+        "quantity": { "type": "integer" },
+        "unitPriceUgx": { "type": "integer" },
+        "originalUnitPriceUgx": { "type": "integer" },
+        "grossTotalUgx": { "type": "integer" },
+        "savingsTotalUgx": { "type": "integer" },
+        "commissionBps": { "type": "integer" },
+        "platformCommissionUgx": { "type": "integer" },
+        "netBusinessProceedsUgx": { "type": "integer" },
+        "currency": { "type": "string", "enum": ["UGX"] },
+        "collectionWindow": { "type": "string", "maxLength": 100 },
+        "collectionDeadlineIso": { "type": "string", "maxLength": 64 },
+        "collectionCode": { "type": "string", "maxLength": 16 },
+        "paymentMethod": { "type": "string", "enum": ["mtn_momo_sandbox", "airtel_money_sandbox", "card_sandbox", "pay_on_collection_verified"] },
+        "paymentProviderRef": { "type": "string", "maxLength": 128 },
+        "paymentStatus": { "type": "string", "enum": ["pending_verification", "paid_sandbox_verified", "failed", "refunded"] },
+        "orderStatus": { "type": "string", "enum": ["reserved", "ready_for_pickup", "collected", "cancelled", "refunded", "disputed"] },
+        "cancellationReason": { "type": "string", "maxLength": 300 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "customerUid", "customerName", "businessId", "businessOwnerUid", "businessName", "pickupAddress", "listingId", "listingTitle", "quantity", "unitPriceUgx", "originalUnitPriceUgx", "grossTotalUgx", "savingsTotalUgx", "commissionBps", "platformCommissionUgx", "netBusinessProceedsUgx", "currency", "collectionWindow", "collectionDeadlineIso", "collectionCode", "paymentMethod", "paymentProviderRef", "paymentStatus", "orderStatus", "cancellationReason", "createdAt", "updatedAt"]
+    },
+    "SafetyComplaint": {
+      "title": "SafetyComplaint",
+      "description": "Customer or staff food safety complaint, dispute, or issue ticket.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "reporterUid": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "orderId": { "type": "string", "maxLength": 128 },
+        "listingId": { "type": "string", "maxLength": 128 },
+        "businessId": { "type": "string", "maxLength": 128 },
+        "category": { "type": "string", "enum": ["food_safety_urgent", "allergen_mismatch", "collection_closed", "quality_issue", "billing_refund"] },
+        "severity": { "type": "string", "enum": ["normal", "high", "critical_safety"] },
+        "description": { "type": "string", "minLength": 5, "maxLength": 800 },
+        "status": { "type": "string", "enum": ["open", "investigating", "resolved_refunded", "dismissed"] },
+        "resolutionNotes": { "type": "string", "maxLength": 500 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "reporterUid", "orderId", "listingId", "businessId", "category", "severity", "description", "status", "resolutionNotes", "createdAt", "updatedAt"]
+    },
+    "VerifiedReview": {
+      "title": "VerifiedReview",
+      "description": "Post-collection verified customer review.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "orderId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "businessId": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "customerUid": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "customerName": { "type": "string", "maxLength": 100 },
+        "rating": { "type": "integer" },
+        "comment": { "type": "string", "minLength": 3, "maxLength": 500 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "orderId", "businessId", "customerUid", "customerName", "rating", "comment", "createdAt"]
+    },
+    "AuditLogEntry": {
+      "title": "AuditLogEntry",
+      "description": "Immutable administrative, financial, and food-safety event log.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "actorUid": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "actorRole": { "type": "string", "maxLength": 40 },
+        "actionType": { "type": "string", "maxLength": 80 },
+        "targetId": { "type": "string", "maxLength": 128 },
+        "summary": { "type": "string", "maxLength": 400 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "actorUid", "actorRole", "actionType", "targetId", "summary", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile and non-PII preferences."
+    },
+    "/users/{userId}/private/{docId}": {
+      "schema": "UserPrivateInfo",
+      "description": "Strictly isolated PII (email, phone, PDPO consent) readable only by owner or admin."
+    },
+    "/businesses/{businessId}": {
+      "schema": "BusinessProfile",
+      "description": "Participating Kampala food businesses and KCCA verification records."
+    },
+    "/listings/{listingId}": {
+      "schema": "FoodListing",
+      "description": "Surplus food listings with real-time inventory, allergens, and deadlines."
+    },
+    "/orders/{orderId}": {
+      "schema": "OrderRecord",
+      "description": "Customer reservations, collection codes, payment statuses, and commission records."
+    },
+    "/complaints/{complaintId}": {
+      "schema": "SafetyComplaint",
+      "description": "Food safety reports and order dispute tickets."
+    },
+    "/reviews/{reviewId}": {
+      "schema": "VerifiedReview",
+      "description": "Verified post-collection customer reviews."
+    },
+    "/audit_logs/{logId}": {
+      "schema": "AuditLogEntry",
+      "description": "Immutable audit trail for admin, safety, and financial events."
+    }
+  }
+}

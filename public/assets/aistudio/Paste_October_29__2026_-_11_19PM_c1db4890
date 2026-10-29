@@ -1,0 +1,759 @@
+# MASTER DEVELOPMENT PROMPT: SURPLUSSAVER
+## Build a Premium, Production-Ready Food Surplus Marketplace
+
+### 1. YOUR ROLE AND MISSION
+
+Act as a world-class product architect, senior full-stack software engineer, UI/UX designer, database architect, cybersecurity specialist, food-marketplace consultant and SaaS business strategist.
+
+Your mission is to design and build **SurplusSaver**, a premium, mobile-first food-surplus marketplace that connects food businesses with customers who want quality food at discounted prices.
+
+Do not create a basic demonstration, static website or non-functional mockup. Build a cohesive, functional application with a professional interface, working user journeys, persistent data, secure authentication, real business logic and a clear path to production deployment.
+
+When a third-party service requires credentials, create a secure integration interface, document the setup requirements and clearly distinguish simulated functionality from live functionality.
+
+The application must be attractive, reliable, accessible, scalable and practical for the Ugandan market, with the ability to expand internationally.
+
+### 2. PRODUCT VISION
+
+SurplusSaver helps food businesses recover value from eligible unsold food by listing it at discounted prices before the food becomes unsuitable for sale or consumption.
+
+The platform should make it easy for customers to discover nearby offers, compare prices, reserve available food, pay securely and collect their orders within specified time windows.
+
+The long-term vision is to build a trusted marketplace that reduces avoidable food waste, improves food-business economics and increases access to affordable food.
+
+**Primary market:** Kampala, Uganda.
+
+**Initial currency:** Ugandan shillings (UGX).
+
+**Initial language:** English, with architecture prepared for future localization.
+
+**Initial business categories:**
+- Restaurants and cafés
+- Bakeries and pastry shops
+- Supermarkets and grocery stores
+- Hotels and catering businesses
+- Fruit and vegetable shops
+- Other approved food retailers
+
+**Initial customer segments:**
+- Students
+- Working professionals
+- Families
+- Budget-conscious consumers
+- Nearby residents
+- People seeking affordable meals and groceries
+
+### 3. PRODUCT DESIGN AND BRAND IDENTITY
+
+Create a premium visual identity that communicates freshness, affordability, trust, convenience and sustainability.
+
+Brand name: SurplusSaver.
+
+Suggested tagline: "Good Food. Better Prices. Less Waste."
+
+Design the product to feel like a modern commercial marketplace, with the visual polish and usability expected from a leading consumer technology company.
+
+#### Visual direction
+
+Use:
+- A fresh green primary brand colour to communicate sustainability.
+- Warm cream or off-white backgrounds.
+- Dark charcoal text for readability.
+- Orange or amber accents for discounts and limited-time offers.
+- Consistent spacing, elegant typography and restrained shadows.
+- High-quality food photography.
+- Rounded product cards and clean navigation.
+- Subtle animations that never interfere with usability.
+
+Avoid excessive gradients, crowded layouts, oversized promotional banners, unnecessary animations and generic dashboard templates.
+
+Create a recognizable logo featuring a simple combination of a food-related symbol, a circular sustainability motif or a clever letterform.
+
+Establish reusable design tokens for colours, typography, spacing, border radii, elevation, icons and component states.
+
+Support desktop, tablet and mobile layouts. Prioritize mobile because many initial customers will access the service through smartphones.
+
+### 4. USER ROLES AND PERMISSIONS
+
+Implement four clearly separated roles.
+
+#### A. Customer
+
+Customers must be able to:
+- Register and sign in securely.
+- Browse food offers without creating an account.
+- Search for available surplus food.
+- Filter offers by category, price, distance where supported, collection time and dietary information.
+- View participating businesses and their locations.
+- View original prices and discounted prices.
+- See item quantities, ingredients and declared allergens.
+- Reserve eligible offers.
+- Select an available collection window.
+- Pay through supported payment methods.
+- Receive booking confirmations and collection instructions.
+- View active and previous orders.
+- Cancel an order when permitted by the cancellation policy.
+- Request help or report a problem.
+- Submit verified post-purchase reviews.
+- Save favourite businesses.
+- Manage notification preferences and personal information.
+
+#### B. Food business owner or staff member
+
+Approved businesses must be able to:
+- Register a business and submit verification information.
+- Create and manage a business profile.
+- Add a logo, cover image, address and contact information.
+- Set opening hours and collection windows.
+- Create food listings.
+- Upload food photographs.
+- Enter available quantities and discounted prices.
+- Set appropriate sale and collection deadlines.
+- Specify ingredients, allergens and storage requirements.
+- Identify whether the product is packaged, prepared or sold as a surprise food bundle.
+- Publish, pause, edit or withdraw listings.
+- Update inventory when reservations are made.
+- View incoming orders.
+- Confirm, prepare and complete collections.
+- Review sales and order history.
+- Process eligible refunds according to the platform's policies.
+- View revenue, commissions and settlement records.
+- Receive customer notifications.
+- Access performance reports.
+
+Only approved businesses should be permitted to publish offers publicly.
+
+#### C. Platform administrator
+
+Provide a secure administration console with role-based permissions.
+
+Administrators must be able to:
+- Review business applications and verification documents.
+- Approve, reject, suspend or reinstate businesses.
+- Manage customer accounts and access restrictions.
+- Review, approve, suspend or remove food listings.
+- Monitor orders and transaction statuses.
+- Investigate disputes and customer complaints.
+- Manage refunds and commission rules.
+- Configure supported payment methods.
+- Manage promotional placements.
+- Configure categories and platform policies.
+- View platform revenue and marketplace performance.
+- Review audit logs.
+- Monitor suspicious transactions and repeated policy violations.
+- Export authorized operational reports.
+
+Require appropriate elevated permissions for sensitive actions, especially refunds, payout changes, account suspensions and financial adjustments.
+
+#### D. Delivery or collection partner (future-ready)
+
+Design the architecture so that delivery partners can be introduced later.
+
+For the initial version, focus on customer collection from participating businesses. Do not make a full delivery fleet a requirement for launch.
+
+### 5. CUSTOMER APPLICATION EXPERIENCE
+
+Build the following customer-facing pages and screens.
+
+#### A. Landing page
+
+The landing page should immediately communicate what SurplusSaver does.
+
+Include:
+- A polished hero section with a compelling headline.
+- A prominent location selector.
+- A primary "Find Food Near Me" action.
+- A secondary "Partner With Us" action.
+- Featured discounted food offers.
+- Nearby participating businesses.
+- Popular categories.
+- An explanation of how the service works.
+- A section showing potential savings.
+- A section explaining the food-waste reduction mission.
+- Testimonials only when genuine testimonials are available.
+- Clear food-safety and customer-support information.
+- Frequently asked questions.
+- Footer navigation, privacy policy and terms.
+
+Suggested headline:
+
+"Save More on Great Food. Help Waste Less."
+
+Suggested supporting text:
+
+"Discover discounted surplus food from local restaurants, bakeries and shops. Reserve your favourites and collect them at a convenient time."
+
+#### B. Discover page
+
+Create an engaging food marketplace with:
+- Search by food name or business.
+- Location selection.
+- Category filters.
+- Price filters.
+- Collection-time filters.
+- Dietary filters based on verified listing information.
+- Sorting by price, discount, distance or newest listing.
+- Availability indicators.
+- Loading, empty and error states.
+- A map view only when reliable location data and mapping integration are available.
+
+Each food card should show:
+- Food image.
+- Product name.
+- Business name.
+- Discounted price.
+- Original price.
+- Discount percentage.
+- Availability status.
+- Collection window.
+- Approximate distance when location data supports it.
+- Declared allergen information or a clear link to details.
+
+Do not fabricate ratings, distances, discounts, stock quantities or business verification badges.
+
+#### C. Food product details
+
+Each product page should include:
+- Product name and photographs.
+- Description.
+- Original and discounted prices.
+- Clearly calculated savings.
+- Available quantities.
+- Ingredients and allergen disclosures supplied by the business.
+- Storage and handling instructions.
+- Collection deadline.
+- Collection location.
+- Business details.
+- Cancellation and refund conditions.
+- A clear reservation button.
+
+The system must clearly distinguish between a product's sale deadline, its safe-use deadline where applicable, and the customer's collection deadline.
+
+Never automatically infer that food is safe to sell or consume solely because it has not reached an entered expiry date.
+
+#### D. Checkout and reservation
+
+Implement a straightforward, trustworthy checkout.
+
+The flow should be:
+
+1. Select a food offer.
+2. Choose the quantity.
+3. Select an available collection window.
+4. Review the price and any disclosed fees.
+5. Choose a supported payment method.
+6. Confirm the reservation.
+7. Receive an order confirmation and collection reference.
+
+Support configurable reservation rules, including inventory holds, payment deadlines and cancellation policies.
+
+Prevent two customers from successfully purchasing the final available unit.
+
+Use atomic inventory updates and server-side validation. Never trust prices, totals or quantities submitted by the client without verification.
+
+#### E. Customer dashboard
+
+Provide:
+- Active reservations.
+- Collection reminders.
+- Order history.
+- Saved businesses.
+- Receipts.
+- Refund status.
+- Customer support.
+- Account settings.
+- Notification preferences.
+
+Make the collection reference easy to retrieve. Where appropriate, support a QR code or short verification code that staff can validate when handing over an order.
+
+### 6. BUSINESS MANAGEMENT PORTAL
+
+Create a dedicated business dashboard that helps food businesses manage surplus offers without requiring technical expertise.
+
+The dashboard should include:
+
+**Overview**
+- Active listings.
+- Units available.
+- Orders received.
+- Completed collections.
+- Gross sales.
+- Platform commission.
+- Estimated net proceeds.
+- Listing performance.
+
+**Listing management**
+- Create a new offer.
+- Save drafts.
+- Edit or withdraw offers.
+- Update remaining quantities.
+- Set collection windows.
+- Manage ingredients and allergen disclosures.
+- Add product photographs.
+- Schedule publication where supported.
+
+**Order management**
+- View new reservations.
+- Confirm order readiness.
+- Verify collection codes.
+- Mark orders as collected.
+- Track cancellations.
+- View payment and refund statuses.
+
+**Reports**
+- Daily and monthly sales.
+- Best-performing listings.
+- Sell-through rate.
+- Uncollected orders.
+- Estimated food quantities sold through the platform.
+- Customer repeat-purchase rates.
+- Commission and settlement history.
+
+Use clear labels and simple charts. Every financial metric must have a documented calculation.
+
+Do not present estimated food waste avoided or environmental impact as scientifically verified measurements unless a transparent methodology supports the calculation.
+
+### 7. FOOD SAFETY AND MARKETPLACE TRUST
+
+Food safety must be a core requirement, not an optional feature.
+
+Implement the following safeguards:
+- Require businesses to accept the platform's food-safety terms.
+- Establish business verification procedures appropriate to the applicable jurisdiction.
+- Require accurate product descriptions and allergen disclosures.
+- Collect appropriate storage, preparation and handling information.
+- Define prohibited food categories and listing rules.
+- Support listing removal and urgent safety complaints.
+- Maintain records of relevant listing, order and complaint events.
+- Establish a process for notifying affected customers when a serious product-safety issue arises.
+- Provide clear cancellation, refund and complaint procedures.
+- Restrict the sale of products that fail platform rules or applicable legal requirements.
+- Do not treat customer ratings as a substitute for safety checks.
+
+Design an expiry and collection control system that prevents expired, withdrawn or otherwise ineligible listings from remaining purchasable.
+
+Food eligibility must follow applicable local requirements and the platform's documented safety policies. A business must not be able to bypass these requirements simply by editing a date.
+
+### 8. PAYMENT AND REVENUE ARCHITECTURE
+
+Design a flexible payment layer that supports the following methods where available through verified providers:
+- Mobile Money.
+- Card payments.
+- Other approved digital payment methods.
+
+For the Ugandan launch, investigate suitable providers such as Flutterwave, Pesapal or other locally supported payment gateways. Verify their current availability, pricing, settlement rules, API requirements and compliance obligations before choosing one.
+
+Do not hard-code the application to a single payment provider.
+
+Create a payment abstraction with:
+- Payment initiation.
+- Transaction reference generation.
+- Server-side payment verification.
+- Signed webhook verification where supported.
+- Idempotent event processing.
+- Payment status reconciliation.
+- Refund initiation and tracking.
+- Transaction history.
+- Settlement records.
+- Error handling and retry policies.
+
+Never store raw card numbers, card security codes or mobile-money PINs.
+
+Never mark an order as paid merely because the customer has returned from a payment page. Confirm payment through a trusted server-side verification process.
+
+Support these configurable business models:
+
+**Model 1: Transaction commission**
+
+The platform receives a configurable percentage of completed eligible transactions.
+
+**Model 2: Business subscriptions**
+
+Businesses may purchase optional premium plans with additional analytics, enhanced listing tools and multi-location management.
+
+**Model 3: Featured listings**
+
+Approved businesses may pay for clearly labeled promotional placements.
+
+Allow administrators to configure commission rates and subscription pricing without modifying application code.
+
+Do not charge a business twice for the same transaction. Maintain an auditable record of gross order value, discounts, platform fees, payment processing fees where applicable, refunds and net settlement.
+
+Do not assume the platform can hold, pool or transfer customer funds without the necessary provider capabilities and legal approvals.
+
+### 9. DATABASE AND BACKEND ARCHITECTURE
+
+Use a reliable relational database, preferably PostgreSQL, for core marketplace data.
+
+Use a maintainable architecture with clearly separated application logic, data access and user interface components.
+
+Create appropriate tables or equivalent data models for:
+
+- Users.
+- Roles and permissions.
+- Business profiles.
+- Business verification records.
+- Food categories.
+- Food listings.
+- Product images.
+- Ingredients and allergen declarations.
+- Inventory.
+- Collection windows.
+- Orders.
+- Order items.
+- Reservation holds.
+- Payments.
+- Refunds.
+- Platform commissions.
+- Business settlements.
+- Subscriptions.
+- Promotional placements.
+- Reviews.
+- Customer support tickets.
+- Notifications.
+- Audit logs.
+- Consent and policy acceptance records.
+
+Use unique identifiers, foreign keys, timestamps, appropriate indexes and database constraints.
+
+Represent money using integer minor units or a suitably precise decimal representation. Avoid floating-point arithmetic for financial calculations.
+
+Store currency explicitly and do not assume all future markets use UGX.
+
+Design inventory reservation and checkout logic to handle concurrent requests safely.
+
+Use database transactions for operations that must succeed or fail together.
+
+Create database migrations, seed data for development and documented backup and recovery procedures.
+
+Never expose database credentials or privileged service keys in browser-delivered code.
+
+### 10. RECOMMENDED TECHNOLOGY STACK
+
+Choose the implementation stack based on the available development environment, deployment target and actual integration requirements.
+
+Preferred web-first architecture:
+
+- **Frontend:** Next.js with TypeScript and React.
+- **Styling:** Tailwind CSS and a consistent accessible component system.
+- **Backend:** Next.js server-side routes or a dedicated API service.
+- **Database:** PostgreSQL.
+- **Authentication:** A reputable managed authentication provider or securely implemented server-side authentication.
+- **Image storage:** Private-capable object storage with controlled public delivery for approved product images.
+- **Payments:** A provider abstraction connected to a verified local payment gateway.
+- **Notifications:** Email initially, with SMS or supported messaging integrations as needed.
+- **Maps:** A suitable mapping provider when the feature is required.
+- **Hosting:** A production platform compatible with the selected framework and database.
+
+Supabase may be used for PostgreSQL, authentication and storage if its current capabilities and security configuration meet the requirements.
+
+A progressive web app is an acceptable initial delivery format. Design the architecture so native mobile applications can be introduced later without rebuilding the entire business backend.
+
+Do not add unnecessary microservices, blockchain, artificial intelligence or complex infrastructure to the initial release.
+
+### 11. AUTHENTICATION, SECURITY AND PRIVACY
+
+Implement:
+- Secure registration and sign-in.
+- Email verification where appropriate.
+- Secure password recovery.
+- Role-based access control.
+- Server-side authorization for every sensitive operation.
+- Input validation and output encoding.
+- Protection against common web vulnerabilities.
+- Rate limiting on sensitive endpoints.
+- Secure session and cookie configuration.
+- CSRF protection where applicable.
+- Appropriate content security policies.
+- Secure upload validation.
+- Payment webhook verification.
+- Audit logging for administrative and financial operations.
+- Data retention and deletion procedures.
+- Secure secret management.
+
+Use least-privilege access for database operations and external integrations.
+
+Ensure customers cannot view other customers' private orders, business owners cannot access competitors' private financial records, and unauthorized users cannot access administrative functionality.
+
+Design privacy notices and consent flows suitable for applicable Ugandan data-protection requirements, including the Personal Data Protection Office framework where relevant.
+
+Collect only necessary personal data. Avoid exposing exact customer locations to other users without a legitimate, disclosed reason.
+
+Never put secrets, API keys or service-role credentials into frontend source code.
+
+### 12. NOTIFICATIONS AND COMMUNICATION
+
+Create an event-driven notification system for:
+- Reservation confirmation.
+- Payment confirmation.
+- Order readiness.
+- Upcoming collection deadlines.
+- Cancellation confirmation.
+- Refund updates.
+- Business approval.
+- Low inventory.
+- Listing expiration.
+- Important safety announcements.
+
+Use notification preferences where appropriate.
+
+Provide a notification history and record delivery outcomes when the provider supports them.
+
+Build an email notification implementation first if suitable credentials are available. Add SMS and mobile-money-related notifications through supported providers.
+
+If a service is not configured, show a clear setup status and do not claim that messages have been delivered.
+
+### 13. ADMINISTRATION, ANALYTICS AND BUSINESS INTELLIGENCE
+
+Provide an administration dashboard with the following metrics:
+- Registered customers.
+- Approved businesses.
+- Active food listings.
+- Total orders.
+- Completed orders.
+- Cancelled and refunded orders.
+- Gross merchandise value.
+- Earned platform commissions.
+- Subscription revenue.
+- Repeat customer rate.
+- Business retention.
+- Sell-through rate.
+- Complaint rate.
+
+Use clearly defined metrics and date filters.
+
+Include export functionality for authorized reports.
+
+Create basic fraud and abuse controls, such as duplicate payment-event detection, unusual reservation patterns and repeated listing violations.
+
+Avoid making unsupported claims about the number of meals saved, the amount of waste prevented or carbon emissions avoided.
+
+### 14. SEARCH, DISCOVERY AND MARKETPLACE PERFORMANCE
+
+Implement useful search and filtering from the first release.
+
+Customers should be able to search by:
+- Food or product name.
+- Business name.
+- Category.
+- Available collection period.
+- Price range.
+- Declared dietary characteristics.
+- Location when supported.
+
+Rank offers using transparent, configurable rules such as availability, relevance, distance where reliable, freshness of the listing and customer-selected sorting.
+
+Sponsored offers must be labeled.
+
+Do not invent real-time location data, delivery estimates or product availability.
+
+Optimize image loading, pagination, database queries and caching. Ensure inventory and payment-sensitive information is not served from stale caches.
+
+### 15. ACCESSIBILITY AND USABILITY
+
+Follow WCAG 2.2 AA principles where practical.
+
+Ensure:
+- Keyboard navigation.
+- Clear focus indicators.
+- Sufficient text contrast.
+- Accessible form labels.
+- Meaningful error messages.
+- Screen-reader-friendly controls.
+- Responsive layouts.
+- Touch-friendly controls.
+- Accessible modal dialogs.
+- Clear loading and success states.
+
+Use simple language and minimize the number of steps required to reserve food.
+
+The experience should remain usable on modest smartphones and slower connections.
+
+Consider a low-bandwidth mode and avoid requiring large downloads before a customer can browse offers.
+
+### 16. TESTING AND QUALITY ASSURANCE
+
+Write meaningful automated tests for the critical user journeys.
+
+At minimum, test:
+
+1. Customer registration and authentication.
+2. Business registration and approval.
+3. Food listing creation and publication.
+4. Search and category filtering.
+5. Inventory reservation.
+6. Concurrent purchases of limited stock.
+7. Successful and failed payments.
+8. Payment webhook verification.
+9. Duplicate webhook delivery.
+10. Order confirmation.
+11. Collection-code verification.
+12. Cancellation and refund handling.
+13. Role-based access restrictions.
+14. Business commission calculations.
+15. Listing expiry and withdrawal.
+16. Administrative audit records.
+17. Mobile responsiveness.
+18. Accessibility and form validation.
+
+Use sandbox payment credentials for payment integration tests.
+
+Provide unit tests, integration tests and end-to-end tests for important flows.
+
+Do not report tests as passed unless they have actually been executed successfully.
+
+### 17. DEPLOYMENT AND PRODUCTION READINESS
+
+Prepare the application for deployment with:
+- Environment-variable documentation.
+- Database migrations.
+- Production build instructions.
+- Secure production configuration.
+- Error monitoring.
+- Structured logs.
+- Backup and restoration procedures.
+- Health checks.
+- Deployment documentation.
+- Domain and HTTPS setup guidance.
+- Payment provider setup instructions.
+- Administrative account setup.
+- Data privacy documentation.
+- Terms of service.
+- Cancellation and refund policy templates.
+- Business onboarding instructions.
+
+Use environment-specific configuration for development, testing and production.
+
+Never include real credentials in source control.
+
+Document all services that require external accounts, approval, billing or legal review.
+
+Before launch, ensure the application has at least one verified payment integration or a clearly documented manual payment and reconciliation process. Never represent a simulated payment as real.
+
+### 18. BUILD THE PRODUCT IN PHASES
+
+Follow this implementation order.
+
+**Phase 1 — Foundation**
+- Establish the project structure.
+- Create the design system.
+- Configure the database.
+- Implement authentication and roles.
+- Build business registration and approval.
+- Create the initial landing page.
+
+**Phase 2 — Core marketplace**
+- Implement food listings.
+- Build search and filtering.
+- Add product details.
+- Implement inventory and collection windows.
+- Build customer reservations and order management.
+
+**Phase 3 — Payments and monetization**
+- Integrate a suitable payment provider.
+- Implement server-side payment verification.
+- Create commission calculations.
+- Add refunds and settlement records.
+- Build business subscription foundations.
+
+**Phase 4 — Operational management**
+- Complete business and administrator dashboards.
+- Add notifications.
+- Implement complaint management.
+- Add reporting and audit logs.
+
+**Phase 5 — Testing and launch**
+- Run automated tests.
+- Fix critical defects.
+- Conduct security checks.
+- Test on mobile and desktop.
+- Configure production services.
+- Document launch requirements.
+
+Do not build advanced features at the expense of reliable inventory, payment, collection and safety workflows.
+
+### 19. MINIMUM VIABLE PRODUCT
+
+The first release must prioritize:
+
+1. Customer browsing and registration.
+2. Approved business accounts.
+3. Creation and management of surplus-food listings.
+4. Original and discounted prices.
+5. Quantity tracking.
+6. Collection windows.
+7. Reservations and order confirmation.
+8. Secure payment integration or a clearly labeled test mode.
+9. Collection verification.
+10. Basic customer and business dashboards.
+11. Administrator approval and moderation.
+12. A simple commission model.
+13. Food-safety disclosures.
+14. Mobile-responsive design.
+
+Defer advanced loyalty programmes, AI recommendations, multi-country settlement, automated delivery routing and complex subscription tiers until the core marketplace demonstrates demand.
+
+### 20. REQUIRED DELIVERABLES
+
+Deliver the following:
+
+- A working application, not merely a concept document.
+- A complete, consistent user interface.
+- A documented system architecture.
+- A database schema and migrations.
+- Functional customer workflows.
+- Functional business workflows.
+- Functional administrative workflows.
+- A secure payment integration or an explicitly documented integration boundary.
+- Automated tests for critical operations.
+- Sample development data clearly marked as fictional.
+- An `.env.example` file without real secrets.
+- Setup and installation instructions.
+- Deployment instructions.
+- A list of required third-party accounts.
+- A description of incomplete integrations and remaining launch blockers.
+- A prioritized list of future enhancements.
+
+### 21. ACCEPTANCE CRITERIA
+
+The application is not complete merely because its pages render.
+
+Consider the MVP complete only when:
+
+- A customer can discover an available listing and complete the supported reservation flow.
+- A business can create a listing and manage its orders.
+- Inventory cannot be oversold through concurrent reservations.
+- Payment status is verified securely when online payments are enabled.
+- Collection can be recorded and verified.
+- Administrators can approve businesses and moderate listings.
+- Commission and order totals are calculated correctly.
+- Private information is protected by server-side authorization.
+- Expired, withdrawn or otherwise ineligible listings cannot be purchased.
+- Critical automated tests pass.
+- The application runs using documented setup instructions.
+- External integrations and limitations are disclosed accurately.
+
+### 22. FINAL EXECUTION INSTRUCTIONS
+
+Begin by inspecting the available development environment and selecting the most appropriate supported technology stack.
+
+Then:
+
+1. Summarize the architecture and key technical decisions.
+2. Identify essential external services and any missing credentials.
+3. Build the application in the phases above.
+4. Implement functional end-to-end workflows.
+5. Run the available tests and fix failures.
+6. Review the security, food-safety and payment-handling requirements.
+7. Provide clear setup and deployment instructions.
+8. Report what works, what has been tested and what still requires configuration.
+
+If a technical decision is not specified, make a sensible, documented choice that supports maintainability and the initial Ugandan market.
+
+Do not stop after producing a plan if the environment allows you to build the application.
+
+Do not replace functional features with decorative buttons, hard-coded success messages or fake payment confirmations.
+
+Do not claim that an external integration works until it has been configured and tested.
+
+**Final objective:** Build SurplusSaver into a trustworthy, commercially viable, production-oriented food-surplus marketplace that can launch with a focused Kampala pilot, generate recurring revenue and expand sustainably as customer demand grows.

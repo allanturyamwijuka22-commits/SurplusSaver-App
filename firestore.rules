@@ -1,0 +1,525 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global Safety Net (Default Deny Catch-All)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 2. Hardened Global Primitives
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+    function incoming() {
+      return request.resource.data;
+    }
+    function existing() {
+      return resource.data;
+    }
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+    function isAdmin() {
+      return isVerifiedUser() && (
+        request.auth.token.email == 'osbertallan09@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // Connection Probe Path (read-only doc check)
+    match /test/connection {
+      allow get: if true;
+      allow list, write: if false;
+    }
+
+    // Admins Registry
+    match /admins/{adminUid} {
+      allow get: if isSignedIn() && isValidId(adminUid) && (request.auth.uid == adminUid || isAdmin());
+      allow list: if isAdmin();
+      allow create, update, delete: if isAdmin() && isValidId(adminUid);
+    }
+
+    // Validation Blueprint: UserProfile (/users/{userId})
+    function isValidUserProfile(data) {
+      return data.keys().hasAll([
+        'uid', 'displayName', 'role', 'neighborhood',
+        'lowBandwidthMode', 'notifyEmail', 'notifySms', 'notifySafetyAlerts',
+        'policyAcceptedAt', 'createdAt', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'uid', 'displayName', 'role', 'neighborhood', 'savedBusinessIds',
+        'lowBandwidthMode', 'notifyEmail', 'notifySms', 'notifySafetyAlerts',
+        'policyAcceptedAt', 'createdAt', 'updatedAt'
+      ]) &&
+      isValidId(data.uid) &&
+      data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 100 &&
+      data.role is string && data.role in ['customer', 'business', 'admin', 'delivery_partner'] &&
+      data.neighborhood is string && data.neighborhood.size() <= 80 &&
+      (!('savedBusinessIds' in data) || (data.savedBusinessIds is string && data.savedBusinessIds.size() <= 1000)) &&
+      data.lowBandwidthMode is bool &&
+      data.notifyEmail is bool &&
+      data.notifySms is bool &&
+      data.notifySafetyAlerts is bool &&
+      data.policyAcceptedAt is string && data.policyAcceptedAt.size() <= 64 &&
+      data.createdAt is string && data.createdAt.size() <= 64 &&
+      data.updatedAt is string && data.updatedAt.size() <= 64;
+    }
+
+    match /users/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) && (request.auth.uid == userId || isAdmin());
+      allow list: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if isVerifiedUser() && isValidId(userId) &&
+        isValidUserProfile(incoming()) &&
+        userId == request.auth.uid &&
+        incoming().uid == request.auth.uid &&
+        (incoming().role in ['customer', 'business', 'delivery_partner'] || isAdmin());
+      allow update: if isVerifiedUser() && isValidId(userId) &&
+        isValidUserProfile(incoming()) &&
+        incoming().uid == existing().uid &&
+        incoming().createdAt == existing().createdAt && (
+          isAdmin() || (
+            userId == request.auth.uid &&
+            (incoming().role == existing().role || incoming().role in ['customer', 'business', 'delivery_partner']) &&
+            incoming().diff(existing()).affectedKeys().hasOnly([
+              'displayName', 'role', 'neighborhood', 'savedBusinessIds',
+              'lowBandwidthMode', 'notifyEmail', 'notifySms', 'notifySafetyAlerts',
+              'policyAcceptedAt', 'updatedAt'
+            ])
+          )
+        );
+      allow delete: if isAdmin() && isValidId(userId);
+
+      // Validation Blueprint: UserPrivateInfo (/users/{userId}/private/{docId})
+      function isValidUserPrivateInfo(data) {
+        return data.keys().hasAll(['uid', 'email', 'phone', 'pdpoConsentVersion', 'updatedAt']) &&
+          data.keys().hasOnly(['uid', 'email', 'phone', 'pdpoConsentVersion', 'updatedAt']) &&
+          isValidId(data.uid) &&
+          data.email is string && data.email.size() <= 160 &&
+          data.phone is string && data.phone.size() <= 32 &&
+          data.pdpoConsentVersion is string && data.pdpoConsentVersion.size() <= 32 &&
+          data.updatedAt is string && data.updatedAt.size() <= 64;
+      }
+
+      match /private/{docId} {
+        allow get: if isSignedIn() && isValidId(userId) && isValidId(docId) &&
+          exists(/databases/$(database)/documents/users/$(userId)) &&
+          (request.auth.uid == userId || isAdmin());
+        allow list: if false;
+        allow create: if isVerifiedUser() && isValidId(userId) && isValidId(docId) &&
+          isValidUserPrivateInfo(incoming()) &&
+          userId == request.auth.uid &&
+          incoming().uid == request.auth.uid &&
+          existsAfter(/databases/$(database)/documents/users/$(userId));
+        allow update: if isVerifiedUser() && isValidId(userId) && isValidId(docId) &&
+          isValidUserPrivateInfo(incoming()) &&
+          exists(/databases/$(database)/documents/users/$(userId)) &&
+          incoming().uid == existing().uid && (
+            isAdmin() || (
+              userId == request.auth.uid &&
+              incoming().diff(existing()).affectedKeys().hasOnly(['email', 'phone', 'pdpoConsentVersion', 'updatedAt'])
+            )
+          );
+        allow delete: if isAdmin() && isValidId(userId) && isValidId(docId);
+      }
+    }
+
+    // Validation Blueprint: BusinessProfile (/businesses/{businessId})
+    function isValidBusiness(data) {
+      return data.keys().hasAll([
+        'id', 'ownerUid', 'name', 'category', 'neighborhood', 'address',
+        'contactPhone', 'openingHours', 'kccaPermitNumber', 'tinNumber',
+        'verificationStatus', 'foodSafetyAccepted', 'foodSafetyAcceptedAt',
+        'subscriptionTier', 'commissionBps', 'distanceKm', 'isSeedData',
+        'createdAt', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'id', 'ownerUid', 'name', 'category', 'neighborhood', 'address',
+        'contactPhone', 'openingHours', 'kccaPermitNumber', 'tinNumber',
+        'verificationStatus', 'foodSafetyAccepted', 'foodSafetyAcceptedAt',
+        'subscriptionTier', 'commissionBps', 'distanceKm', 'isSeedData',
+        'createdAt', 'updatedAt'
+      ]) &&
+      isValidId(data.id) &&
+      isValidId(data.ownerUid) &&
+      data.name is string && data.name.size() >= 2 && data.name.size() <= 120 &&
+      data.category is string && data.category in [
+        'Restaurants & Cafés', 'Bakeries & Pastry', 'Supermarkets & Grocery',
+        'Hotels & Catering', 'Fruit & Vegetable', 'Approved Retailers'
+      ] &&
+      data.neighborhood is string && data.neighborhood.size() <= 80 &&
+      data.address is string && data.address.size() <= 200 &&
+      data.contactPhone is string && data.contactPhone.size() <= 32 &&
+      data.openingHours is string && data.openingHours.size() <= 120 &&
+      data.kccaPermitNumber is string && data.kccaPermitNumber.size() <= 64 &&
+      data.tinNumber is string && data.tinNumber.size() <= 64 &&
+      data.verificationStatus is string && data.verificationStatus in ['pending', 'approved', 'rejected', 'suspended'] &&
+      data.foodSafetyAccepted is bool && data.foodSafetyAccepted == true &&
+      data.foodSafetyAcceptedAt is string && data.foodSafetyAcceptedAt.size() <= 64 &&
+      data.subscriptionTier is string && data.subscriptionTier in ['standard', 'growth', 'enterprise'] &&
+      data.commissionBps is int && data.commissionBps >= 0 && data.commissionBps <= 5000 &&
+      (data.distanceKm is int || data.distanceKm is float) && data.distanceKm >= 0 && data.distanceKm <= 100 &&
+      data.isSeedData is bool &&
+      data.createdAt is string && data.createdAt.size() <= 64 &&
+      data.updatedAt is string && data.updatedAt.size() <= 64;
+    }
+
+    match /businesses/{businessId} {
+      allow get: if isValidId(businessId) && (
+        resource.data.verificationStatus == 'approved' ||
+        (isSignedIn() && (resource.data.ownerUid == request.auth.uid || isAdmin()))
+      );
+      allow list: if resource.data.verificationStatus == 'approved' ||
+        (isSignedIn() && (resource.data.ownerUid == request.auth.uid || isAdmin()));
+      allow create: if isVerifiedUser() && isValidId(businessId) &&
+        isValidBusiness(incoming()) &&
+        incoming().id == businessId &&
+        (
+          isAdmin() || (
+            incoming().ownerUid == request.auth.uid &&
+            incoming().verificationStatus == 'pending' &&
+            incoming().commissionBps == 1500 &&
+            incoming().isSeedData == false
+          )
+        );
+      allow update: if isVerifiedUser() && isValidId(businessId) &&
+        isValidBusiness(incoming()) &&
+        incoming().id == existing().id &&
+        incoming().ownerUid == existing().ownerUid &&
+        incoming().createdAt == existing().createdAt && (
+          isAdmin() || (
+            existing().ownerUid == request.auth.uid &&
+            incoming().verificationStatus == existing().verificationStatus &&
+            incoming().commissionBps == existing().commissionBps &&
+            incoming().diff(existing()).affectedKeys().hasOnly([
+              'name', 'category', 'neighborhood', 'address', 'contactPhone',
+              'openingHours', 'kccaPermitNumber', 'tinNumber', 'subscriptionTier', 'updatedAt'
+            ])
+          )
+        );
+      allow delete: if isAdmin() && isValidId(businessId);
+    }
+
+    // Validation Blueprint: FoodListing (/listings/{listingId})
+    function isValidListing(data) {
+      return data.keys().hasAll([
+        'id', 'businessId', 'businessName', 'businessCategory', 'neighborhood',
+        'pickupAddress', 'ownerUid', 'title', 'description', 'listingType',
+        'currency', 'originalPriceUgx', 'discountedPriceUgx', 'totalQuantity',
+        'remainingQuantity', 'ingredients', 'allergens', 'dietaryTags',
+        'storageInstructions', 'collectionWindowLabel', 'saleDeadlineIso',
+        'collectionDeadlineIso', 'safeUseDeadlineIso', 'status', 'isSponsored',
+        'distanceKm', 'imageKey', 'customImageDataUrl', 'isSeedData',
+        'createdAt', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'id', 'businessId', 'businessName', 'businessCategory', 'neighborhood',
+        'pickupAddress', 'ownerUid', 'title', 'description', 'listingType',
+        'currency', 'originalPriceUgx', 'discountedPriceUgx', 'totalQuantity',
+        'remainingQuantity', 'ingredients', 'allergens', 'dietaryTags',
+        'storageInstructions', 'collectionWindowLabel', 'saleDeadlineIso',
+        'collectionDeadlineIso', 'safeUseDeadlineIso', 'status', 'isSponsored',
+        'distanceKm', 'imageKey', 'customImageDataUrl', 'isSeedData',
+        'createdAt', 'updatedAt'
+      ]) &&
+      isValidId(data.id) &&
+      isValidId(data.businessId) &&
+      data.businessName is string && data.businessName.size() >= 2 && data.businessName.size() <= 120 &&
+      data.businessCategory is string && data.businessCategory.size() <= 64 &&
+      data.neighborhood is string && data.neighborhood.size() <= 80 &&
+      data.pickupAddress is string && data.pickupAddress.size() <= 200 &&
+      isValidId(data.ownerUid) &&
+      data.title is string && data.title.size() >= 3 && data.title.size() <= 140 &&
+      data.description is string && data.description.size() >= 10 && data.description.size() <= 800 &&
+      data.listingType is string && data.listingType in ['packaged', 'prepared', 'surprise_bundle'] &&
+      data.currency is string && data.currency == 'UGX' &&
+      data.originalPriceUgx is int && data.originalPriceUgx >= 1000 && data.originalPriceUgx <= 5000000 &&
+      data.discountedPriceUgx is int && data.discountedPriceUgx >= 500 && data.discountedPriceUgx < data.originalPriceUgx &&
+      data.totalQuantity is int && data.totalQuantity >= 1 && data.totalQuantity <= 500 &&
+      data.remainingQuantity is int && data.remainingQuantity >= 0 && data.remainingQuantity <= data.totalQuantity &&
+      data.ingredients is string && data.ingredients.size() >= 2 && data.ingredients.size() <= 500 &&
+      data.allergens is string && data.allergens.size() >= 2 && data.allergens.size() <= 300 &&
+      data.dietaryTags is string && data.dietaryTags.size() <= 200 &&
+      data.storageInstructions is string && data.storageInstructions.size() >= 3 && data.storageInstructions.size() <= 400 &&
+      data.collectionWindowLabel is string && data.collectionWindowLabel.size() <= 100 &&
+      data.saleDeadlineIso is string && data.saleDeadlineIso.size() <= 64 &&
+      data.collectionDeadlineIso is string && data.collectionDeadlineIso.size() <= 64 &&
+      data.safeUseDeadlineIso is string && data.safeUseDeadlineIso.size() <= 64 &&
+      data.status is string && data.status in ['draft', 'published', 'paused', 'withdrawn', 'expired', 'suspended_safety'] &&
+      data.isSponsored is bool &&
+      (data.distanceKm is int || data.distanceKm is float) && data.distanceKm >= 0 && data.distanceKm <= 100 &&
+      data.imageKey is string && data.imageKey.size() <= 80 &&
+      data.customImageDataUrl is string && data.customImageDataUrl.size() <= 150000 &&
+      data.isSeedData is bool &&
+      data.createdAt is string && data.createdAt.size() <= 64 &&
+      data.updatedAt is string && data.updatedAt.size() <= 64;
+    }
+
+    match /listings/{listingId} {
+      allow get: if isValidId(listingId) && (
+        resource.data.status == 'published' ||
+        (isSignedIn() && (resource.data.ownerUid == request.auth.uid || isAdmin()))
+      );
+      allow list: if resource.data.status == 'published' ||
+        (isSignedIn() && (resource.data.ownerUid == request.auth.uid || isAdmin()));
+      allow create: if isVerifiedUser() && isValidId(listingId) &&
+        isValidListing(incoming()) &&
+        incoming().id == listingId &&
+        exists(/databases/$(database)/documents/businesses/$(incoming().businessId)) && (
+          isAdmin() || (
+            incoming().ownerUid == request.auth.uid &&
+            get(/databases/$(database)/documents/businesses/$(incoming().businessId)).data.ownerUid == request.auth.uid &&
+            (
+              incoming().status == 'draft' ||
+              get(/databases/$(database)/documents/businesses/$(incoming().businessId)).data.verificationStatus == 'approved'
+            )
+          )
+        );
+      allow update: if isVerifiedUser() && isValidId(listingId) &&
+        isValidListing(incoming()) &&
+        incoming().id == existing().id &&
+        incoming().businessId == existing().businessId &&
+        incoming().ownerUid == existing().ownerUid &&
+        incoming().createdAt == existing().createdAt && (
+          isAdmin() ||
+          // Action 1: Business Owner managing listing details, inventory, or status
+          (
+            existing().ownerUid == request.auth.uid &&
+            existing().status != 'suspended_safety' &&
+            incoming().diff(existing()).affectedKeys().hasOnly([
+              'title', 'description', 'listingType', 'originalPriceUgx',
+              'discountedPriceUgx', 'totalQuantity', 'remainingQuantity',
+              'ingredients', 'allergens', 'dietaryTags', 'storageInstructions',
+              'collectionWindowLabel', 'saleDeadlineIso', 'collectionDeadlineIso',
+              'safeUseDeadlineIso', 'status', 'isSponsored', 'imageKey',
+              'customImageDataUrl', 'updatedAt'
+            ])
+          ) ||
+          // Action 2: Authenticated Customer atomic inventory decrement or cancellation restock
+          (
+            existing().status == 'published' &&
+            incoming().diff(existing()).affectedKeys().hasOnly(['remainingQuantity', 'updatedAt']) &&
+            incoming().remainingQuantity >= 0 &&
+            incoming().remainingQuantity <= existing().totalQuantity
+          )
+        );
+      allow delete: if isAdmin() && isValidId(listingId);
+    }
+
+    // Validation Blueprint: OrderRecord (/orders/{orderId})
+    function isValidOrder(data) {
+      return data.keys().hasAll([
+        'id', 'customerUid', 'customerName', 'businessId', 'businessOwnerUid',
+        'businessName', 'pickupAddress', 'listingId', 'listingTitle',
+        'quantity', 'unitPriceUgx', 'originalUnitPriceUgx', 'grossTotalUgx',
+        'savingsTotalUgx', 'commissionBps', 'platformCommissionUgx',
+        'netBusinessProceedsUgx', 'currency', 'collectionWindow',
+        'collectionDeadlineIso', 'collectionCode', 'paymentMethod',
+        'paymentProviderRef', 'paymentStatus', 'orderStatus',
+        'cancellationReason', 'createdAt', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'id', 'customerUid', 'customerName', 'businessId', 'businessOwnerUid',
+        'businessName', 'pickupAddress', 'listingId', 'listingTitle',
+        'quantity', 'unitPriceUgx', 'originalUnitPriceUgx', 'grossTotalUgx',
+        'savingsTotalUgx', 'commissionBps', 'platformCommissionUgx',
+        'netBusinessProceedsUgx', 'currency', 'collectionWindow',
+        'collectionDeadlineIso', 'collectionCode', 'paymentMethod',
+        'paymentProviderRef', 'paymentStatus', 'orderStatus',
+        'cancellationReason', 'createdAt', 'updatedAt'
+      ]) &&
+      isValidId(data.id) &&
+      isValidId(data.customerUid) &&
+      data.customerName is string && data.customerName.size() >= 1 && data.customerName.size() <= 100 &&
+      isValidId(data.businessId) &&
+      isValidId(data.businessOwnerUid) &&
+      data.businessName is string && data.businessName.size() <= 120 &&
+      data.pickupAddress is string && data.pickupAddress.size() <= 200 &&
+      isValidId(data.listingId) &&
+      data.listingTitle is string && data.listingTitle.size() <= 140 &&
+      data.quantity is int && data.quantity >= 1 && data.quantity <= 50 &&
+      data.unitPriceUgx is int && data.unitPriceUgx >= 500 &&
+      data.originalUnitPriceUgx is int && data.originalUnitPriceUgx > data.unitPriceUgx &&
+      data.grossTotalUgx is int && data.grossTotalUgx == data.quantity * data.unitPriceUgx &&
+      data.savingsTotalUgx is int && data.savingsTotalUgx >= 0 &&
+      data.commissionBps is int && data.commissionBps >= 0 && data.commissionBps <= 5000 &&
+      data.platformCommissionUgx is int && data.platformCommissionUgx >= 0 &&
+      data.netBusinessProceedsUgx is int && data.netBusinessProceedsUgx >= 0 &&
+      data.currency is string && data.currency == 'UGX' &&
+      data.collectionWindow is string && data.collectionWindow.size() <= 100 &&
+      data.collectionDeadlineIso is string && data.collectionDeadlineIso.size() <= 64 &&
+      data.collectionCode is string && data.collectionCode.size() >= 4 && data.collectionCode.size() <= 16 &&
+      data.paymentMethod is string && data.paymentMethod in [
+        'mtn_momo_sandbox', 'airtel_money_sandbox', 'card_sandbox', 'pay_on_collection_verified'
+      ] &&
+      data.paymentProviderRef is string && data.paymentProviderRef.size() <= 128 &&
+      data.paymentStatus is string && data.paymentStatus in [
+        'pending_verification', 'paid_sandbox_verified', 'failed', 'refunded'
+      ] &&
+      data.orderStatus is string && data.orderStatus in [
+        'reserved', 'ready_for_pickup', 'collected', 'cancelled', 'refunded', 'disputed'
+      ] &&
+      data.cancellationReason is string && data.cancellationReason.size() <= 300 &&
+      data.createdAt is string && data.createdAt.size() <= 64 &&
+      data.updatedAt is string && data.updatedAt.size() <= 64;
+    }
+
+    match /orders/{orderId} {
+      allow get: if isSignedIn() && isValidId(orderId) && (
+        resource.data.customerUid == request.auth.uid ||
+        resource.data.businessOwnerUid == request.auth.uid ||
+        isAdmin()
+      );
+      allow list: if isSignedIn() && (
+        resource.data.customerUid == request.auth.uid ||
+        resource.data.businessOwnerUid == request.auth.uid ||
+        isAdmin()
+      );
+      allow create: if isVerifiedUser() && isValidId(orderId) &&
+        isValidOrder(incoming()) &&
+        incoming().id == orderId &&
+        incoming().customerUid == request.auth.uid &&
+        exists(/databases/$(database)/documents/listings/$(incoming().listingId));
+      allow update: if isVerifiedUser() && isValidId(orderId) &&
+        isValidOrder(incoming()) &&
+        incoming().id == existing().id &&
+        incoming().customerUid == existing().customerUid &&
+        incoming().businessId == existing().businessId &&
+        incoming().businessOwnerUid == existing().businessOwnerUid &&
+        incoming().listingId == existing().listingId &&
+        incoming().createdAt == existing().createdAt && (
+          isAdmin() ||
+          // Terminal State Lock: Non-admins cannot mutate already collected or refunded orders
+          (
+            !(existing().orderStatus in ['collected', 'refunded']) && (
+              // Action 1: Customer cancels eligible reservation
+              (
+                existing().customerUid == request.auth.uid &&
+                existing().orderStatus == 'reserved' &&
+                incoming().orderStatus == 'cancelled' &&
+                incoming().diff(existing()).affectedKeys().hasOnly(['orderStatus', 'paymentStatus', 'cancellationReason', 'updatedAt'])
+              ) ||
+              // Action 2: Business owner confirms readiness, verifies collection code, or processes refund
+              (
+                existing().businessOwnerUid == request.auth.uid &&
+                incoming().diff(existing()).affectedKeys().hasOnly(['orderStatus', 'paymentStatus', 'cancellationReason', 'updatedAt'])
+              )
+            )
+          )
+        );
+      allow delete: if isAdmin() && isValidId(orderId);
+    }
+
+    // Validation Blueprint: SafetyComplaint (/complaints/{complaintId})
+    function isValidComplaint(data) {
+      return data.keys().hasAll([
+        'id', 'reporterUid', 'orderId', 'listingId', 'businessId',
+        'category', 'severity', 'description', 'status',
+        'resolutionNotes', 'createdAt', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'id', 'reporterUid', 'orderId', 'listingId', 'businessId',
+        'category', 'severity', 'description', 'status',
+        'resolutionNotes', 'createdAt', 'updatedAt'
+      ]) &&
+      isValidId(data.id) &&
+      isValidId(data.reporterUid) &&
+      data.orderId is string && data.orderId.size() <= 128 &&
+      data.listingId is string && data.listingId.size() <= 128 &&
+      data.businessId is string && data.businessId.size() <= 128 &&
+      data.category is string && data.category in [
+        'food_safety_urgent', 'allergen_mismatch', 'collection_closed', 'quality_issue', 'billing_refund'
+      ] &&
+      data.severity is string && data.severity in ['normal', 'high', 'critical_safety'] &&
+      data.description is string && data.description.size() >= 5 && data.description.size() <= 800 &&
+      data.status is string && data.status in ['open', 'investigating', 'resolved_refunded', 'dismissed'] &&
+      data.resolutionNotes is string && data.resolutionNotes.size() <= 500 &&
+      data.createdAt is string && data.createdAt.size() <= 64 &&
+      data.updatedAt is string && data.updatedAt.size() <= 64;
+    }
+
+    match /complaints/{complaintId} {
+      allow get: if isSignedIn() && isValidId(complaintId) && (
+        resource.data.reporterUid == request.auth.uid || isAdmin()
+      );
+      allow list: if isSignedIn() && (
+        resource.data.reporterUid == request.auth.uid || isAdmin()
+      );
+      allow create: if isVerifiedUser() && isValidId(complaintId) &&
+        isValidComplaint(incoming()) &&
+        incoming().id == complaintId &&
+        incoming().reporterUid == request.auth.uid &&
+        incoming().status == 'open';
+      allow update: if isVerifiedUser() && isValidId(complaintId) &&
+        isValidComplaint(incoming()) &&
+        incoming().id == existing().id &&
+        incoming().reporterUid == existing().reporterUid &&
+        incoming().createdAt == existing().createdAt &&
+        isAdmin();
+      allow delete: if isAdmin() && isValidId(complaintId);
+    }
+
+    // Validation Blueprint: VerifiedReview (/reviews/{reviewId})
+    function isValidReview(data) {
+      return data.keys().hasAll([
+        'id', 'orderId', 'businessId', 'customerUid',
+        'customerName', 'rating', 'comment', 'createdAt'
+      ]) &&
+      data.keys().hasOnly([
+        'id', 'orderId', 'businessId', 'customerUid',
+        'customerName', 'rating', 'comment', 'createdAt'
+      ]) &&
+      isValidId(data.id) &&
+      isValidId(data.orderId) &&
+      isValidId(data.businessId) &&
+      isValidId(data.customerUid) &&
+      data.customerName is string && data.customerName.size() >= 1 && data.customerName.size() <= 100 &&
+      data.rating is int && data.rating >= 1 && data.rating <= 5 &&
+      data.comment is string && data.comment.size() >= 3 && data.comment.size() <= 500 &&
+      data.createdAt is string && data.createdAt.size() <= 64;
+    }
+
+    match /reviews/{reviewId} {
+      allow get: if isValidId(reviewId);
+      allow list: if resource.data.rating >= 1;
+      allow create: if isVerifiedUser() && isValidId(reviewId) &&
+        isValidReview(incoming()) &&
+        incoming().id == reviewId &&
+        incoming().customerUid == request.auth.uid &&
+        exists(/databases/$(database)/documents/orders/$(incoming().orderId)) &&
+        get(/databases/$(database)/documents/orders/$(incoming().orderId)).data.customerUid == request.auth.uid &&
+        get(/databases/$(database)/documents/orders/$(incoming().orderId)).data.orderStatus == 'collected';
+      allow update: if false;
+      allow delete: if isAdmin() && isValidId(reviewId);
+    }
+
+    // Validation Blueprint: AuditLogEntry (/audit_logs/{logId})
+    function isValidAuditLog(data) {
+      return data.keys().hasAll([
+        'id', 'actorUid', 'actorRole', 'actionType', 'targetId', 'summary', 'createdAt'
+      ]) &&
+      data.keys().hasOnly([
+        'id', 'actorUid', 'actorRole', 'actionType', 'targetId', 'summary', 'createdAt'
+      ]) &&
+      isValidId(data.id) &&
+      isValidId(data.actorUid) &&
+      data.actorRole is string && data.actorRole.size() <= 40 &&
+      data.actionType is string && data.actionType.size() <= 80 &&
+      data.targetId is string && data.targetId.size() <= 128 &&
+      data.summary is string && data.summary.size() <= 400 &&
+      data.createdAt is string && data.createdAt.size() <= 64;
+    }
+
+    match /audit_logs/{logId} {
+      allow get: if isSignedIn() && isValidId(logId) && (resource.data.actorUid == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.actorUid == request.auth.uid || isAdmin());
+      allow create: if isVerifiedUser() && isValidId(logId) &&
+        isValidAuditLog(incoming()) &&
+        incoming().id == logId &&
+        incoming().actorUid == request.auth.uid;
+      allow update, delete: if false;
+    }
+  }
+}

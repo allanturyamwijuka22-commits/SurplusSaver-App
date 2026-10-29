@@ -1,0 +1,6 @@
+{
+  "name": "SurplusSaver",
+  "description": "Good Food. Better Prices. Less Waste. Kampala's trusted food-surplus marketplace connecting restaurants, bakeries, and grocers with customers.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
