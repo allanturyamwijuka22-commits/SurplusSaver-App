@@ -352,7 +352,7 @@ service cloud.firestore {
       data.collectionDeadlineIso is string && data.collectionDeadlineIso.size() <= 64 &&
       data.collectionCode is string && data.collectionCode.size() >= 4 && data.collectionCode.size() <= 16 &&
       data.paymentMethod is string && data.paymentMethod in [
-        'mtn_momo_sandbox', 'airtel_money_sandbox', 'card_sandbox', 'pay_on_collection_verified'
+        'mtn_momo_sandbox', 'airtel_money_sandbox', 'card_sandbox', 'bank_transfer_sandbox', 'pay_on_collection_verified'
       ] &&
       data.paymentProviderRef is string && data.paymentProviderRef.size() <= 128 &&
       data.paymentStatus is string && data.paymentStatus in [

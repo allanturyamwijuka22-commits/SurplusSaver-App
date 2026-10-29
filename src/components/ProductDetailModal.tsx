@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
 import { X, ShieldCheck, Clock, MapPin, AlertTriangle, CheckCircle2, Heart } from 'lucide-react';
-import { FoodListing, OrderRecord, PaymentMethodId } from '../types/marketplace';
+import {
+  FoodListing,
+  OrderRecord,
+  PaymentMethodId,
+  UGANDAN_PARTNER_BANKS,
+} from '../types/marketplace';
 import {
   calculateDiscountPercent,
   calculateOrderEconomics,
@@ -35,6 +40,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   const [quantity, setQuantity] = useState<number>(1);
   const [selectedWindow, setSelectedWindow] = useState<string>('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId>('mtn_momo_sandbox');
+  const [selectedBank, setSelectedBank] = useState<string>('Stanbic Bank Uganda');
   const [payerIdentifier, setPayerIdentifier] = useState<string>('+256 772 550 129');
   const [acceptedSafetyTerms, setAcceptedSafetyTerms] = useState<boolean>(true);
   const [submitting, setSubmitting] = useState<boolean>(false);
@@ -411,6 +417,11 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                         sub: 'Instant server-verified test push · Zero customer fee',
                       },
                       {
+                        id: 'bank_transfer_sandbox' as PaymentMethodId,
+                        label: 'Bank Transfer / Instant EFT (Uganda Banks Sandbox)',
+                        sub: 'Stanbic, Centenary, dfcu, Equity, Absa · Verified bank reference',
+                      },
+                      {
                         id: 'card_sandbox' as PaymentMethodId,
                         label: 'Visa / Mastercard (Flutterwave/Pesapal Sandbox)',
                         sub: 'Tokenized test checkout · No raw card numbers stored',
@@ -433,7 +444,16 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                           type="radio"
                           name="paymentMethod"
                           checked={paymentMethod === pm.id}
-                          onChange={() => setPaymentMethod(pm.id)}
+                          onChange={() => {
+                            setPaymentMethod(pm.id);
+                            if (pm.id === 'bank_transfer_sandbox') {
+                              setPayerIdentifier('EFT-UG-9030018421');
+                            } else if (pm.id === 'card_sandbox') {
+                              setPayerIdentifier('CARD-TEST-4242');
+                            } else {
+                              setPayerIdentifier('+256 772 550 129');
+                            }
+                          }}
                           className="mt-1 accent-[#1B5E3A]"
                         />
                         <div className="text-xs">
@@ -445,13 +465,43 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                   </div>
                 </div>
 
+                {paymentMethod === 'bank_transfer_sandbox' && (
+                  <div className="p-3.5 rounded-lg bg-[#FAF8F5] border border-[#D5CFC4] space-y-3 text-xs">
+                    <div>
+                      <label
+                        htmlFor="uganda-bank-select"
+                        className="block font-semibold text-[#1C241E] mb-1"
+                      >
+                        Select Participating Ugandan Bank (Sandbox EFT)
+                      </label>
+                      <select
+                        id="uganda-bank-select"
+                        value={selectedBank}
+                        onChange={(e) => setSelectedBank(e.target.value)}
+                        className="w-full rounded-lg border border-[#D5CFC4] bg-white px-3 py-2 text-xs text-[#1C241E]"
+                      >
+                        {UGANDAN_PARTNER_BANKS.map((bank) => (
+                          <option key={bank} value={bank}>
+                            {bank}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="text-[11px] text-[#5A655D] font-mono-tabular">
+                      Sandbox Settlement Account: SurplusSaver Collections · {selectedBank} · A/C 9030024819201 (Simulated Instant EFT Verification)
+                    </div>
+                  </div>
+                )}
+
                 {paymentMethod !== 'pay_on_collection_verified' && (
                   <div>
                     <label
                       htmlFor="sandbox-payer-input"
                       className="block text-xs font-medium text-[#5A655D] mb-1"
                     >
-                      {paymentMethod === 'card_sandbox'
+                      {paymentMethod === 'bank_transfer_sandbox'
+                        ? `Sandbox Bank EFT / Depositor Reference (${selectedBank})`
+                        : paymentMethod === 'card_sandbox'
                         ? 'Sandbox Test Reference (No real card details collected)'
                         : 'Sandbox Mobile Money Number (Test simulation only)'}
                     </label>

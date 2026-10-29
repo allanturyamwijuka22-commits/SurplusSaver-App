@@ -49,8 +49,9 @@ describe('SurplusSaver Critical User Journeys & Security Rule Verification Suite
     expect(rulesContent).toContain('resource.data.customerUid == request.auth.uid');
     expect(rulesContent).toContain('resource.data.businessOwnerUid == request.auth.uid');
 
-    // Terminal state lock on collected/refunded orders
+    // Terminal state lock on collected/refunded orders & bank_transfer_sandbox payment method
     expect(rulesContent).toContain("!(existing().orderStatus in ['collected', 'refunded'])");
+    expect(rulesContent).toContain("'bank_transfer_sandbox'");
   });
 
   it('2 & 3. Validates Business Verification Gate before public listing eligibility', () => {

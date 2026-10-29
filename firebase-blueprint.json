@@ -125,7 +125,7 @@
         "collectionWindow": { "type": "string", "maxLength": 100 },
         "collectionDeadlineIso": { "type": "string", "maxLength": 64 },
         "collectionCode": { "type": "string", "maxLength": 16 },
-        "paymentMethod": { "type": "string", "enum": ["mtn_momo_sandbox", "airtel_money_sandbox", "card_sandbox", "pay_on_collection_verified"] },
+        "paymentMethod": { "type": "string", "enum": ["mtn_momo_sandbox", "airtel_money_sandbox", "card_sandbox", "bank_transfer_sandbox", "pay_on_collection_verified"] },
         "paymentProviderRef": { "type": "string", "maxLength": 128 },
         "paymentStatus": { "type": "string", "enum": ["pending_verification", "paid_sandbox_verified", "failed", "refunded"] },
         "orderStatus": { "type": "string", "enum": ["reserved", "ready_for_pickup", "collected", "cancelled", "refunded", "disputed"] },

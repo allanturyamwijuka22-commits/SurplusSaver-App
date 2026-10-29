@@ -26,7 +26,17 @@ export type PaymentMethodId =
   | 'mtn_momo_sandbox'
   | 'airtel_money_sandbox'
   | 'card_sandbox'
+  | 'bank_transfer_sandbox'
   | 'pay_on_collection_verified';
+
+export const UGANDAN_PARTNER_BANKS = [
+  'Stanbic Bank Uganda',
+  'Centenary Bank',
+  'dfcu Bank',
+  'Equity Bank Uganda',
+  'Absa Bank Uganda',
+  'Standard Chartered Uganda',
+] as const;
 
 export type PaymentStatus =
   | 'pending_verification'
